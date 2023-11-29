@@ -1,0 +1,84 @@
+outer_triangle_size = 10
+outer_triangle_growth = 0.5
+balls = []
+num_balls = 5
+
+def setup():
+    # Set up the Processing canvas
+    size(600, 400)
+    for _ in range(num_balls):
+        balls.append(create_ball(random(width), random(height)))
+
+def draw():
+    global outer_triangle_size
+    background(0)
+    
+    # Draw outer triangle
+    fill(250)
+    triangle(
+        width / 2 - outer_triangle_size / 2, height / 2 + outer_triangle_size / 2,
+        width / 2, height / 2 - outer_triangle_size / 2,
+        width / 2 + outer_triangle_size / 2, height / 2 + outer_triangle_size / 2
+    )
+    
+    outer_triangle_size += outer_triangle_growth
+
+    # Update and display bouncing balls
+    for ball in balls:
+        ball.update()
+        ball.display()
+
+def create_ball(x, y):
+    return Ball(x, y)
+
+class Ball:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.x_speed = random(1, 3)
+        self.y_speed = random(1, 3)
+        self.size = 50
+        self.split = False
+        self.color_change_rate = 2
+
+    def display(self):
+        fill(
+            sin(frameCount * 0.02) * 127 + 128,
+            sin(frameCount * 0.03) * 127 + 128,
+            sin(frameCount * 0.04) * 127 + 128
+        )
+        ellipse(self.x, self.y, self.size, self.size)
+
+    def update(self):
+        self.x += self.x_speed
+        self.y += self.y_speed
+
+        if self.x - self.size / 2 < 0 or self.x + self.size / 2 > width:
+            self.x_speed *= -1
+
+        if self.y - self.size / 2 < 0 or self.y + self.size / 2 > height:
+            self.y_speed *= -1
+
+        if self.split:
+            self.size -= 1
+            if self.size <= 0:
+                self.split = False
+                self.size = 50
+        else:
+            self.color_change_rate = 0.5
+            fill(
+                sin(frameCount * 0.02 * self.color_change_rate) * 127 + 128,
+                sin(frameCount * 0.03 * self.color_change_rate) * 127 + 128,
+                sin(frameCount * 0.04 * self.color_change_rate) * 127 + 128
+            )
+            self.size += sin(frameCount * 0.03) * 2
+
+def mouseClicked():
+    global balls
+    for ball in balls:
+        d = dist(mouseX, mouseY, ball.x, ball.y)
+        if d < ball.size / 2:
+            ball.split = True
+            balls.append(create_ball(ball.x, ball.y))
+            balls.append(create_ball(ball.x, ball.y))
+            break
